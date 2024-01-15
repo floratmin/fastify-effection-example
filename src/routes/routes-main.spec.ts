@@ -33,7 +33,6 @@ describe('main routes', () => {
         await run(function* () {
             const poolMock = setupPoolMock();
             const logger = new (createLoggerMock(logs))();
-            // const postgresDialect = new PostgresDialectMock({pool: <PoolMock>poolMock})
             fastify = (yield* buildFastify(<typeof Pool><unknown>poolMock, KyselyMock, PostgresDialectMock, <FastifyBaseLogger><unknown>logger)).fastify;
             fastify.inject({
                 method: 'GET',
