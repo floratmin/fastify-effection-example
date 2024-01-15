@@ -1,41 +1,27 @@
 import {
-  createScope,
-  type Operation,
-  type Scope,
-  suspend,
+    type Operation,
+    run
 } from 'effection';
 
 export interface TestScope {
-    runSetup(op: (scope: Scope) => Operation<void>): Promise<void>;
+    addSetup(op: () => Operation<void>): void;
     runTest(op: () => Operation<void>): Promise<void>;
-    teardown(): Promise<void>;
 }
 
 export function createTestScope(): TestScope {
-    let error: Error | undefined;
 
-    let [scope, destroy] = createScope();
-
+    let setup: (() => Operation<void>)[] = [];
     return {
-        runSetup(op: (scope: Scope) => Operation<void>): Promise<void> {
-            return new Promise<void>((resolve) => {
-                scope.run(function* () {
-                    try {
-                        yield* op(scope);
-                        resolve();
-                        yield* suspend();
-                    } catch (e) {
-                        error = <Error>e;
-                    }
-                });
-            });
+        addSetup(op) {
+            setup.push(op);
         },
-        runTest: scope.run,
-        async teardown() {
-            await destroy();
-            if (error) {
-                throw error;
-            }
+        runTest(op) {
+            return run(function* () {
+                for (let step of setup) {
+                    yield* step();
+                }
+                yield* op();
+            });
         }
     }
 }
@@ -51,7 +37,6 @@ function describeWithScope(name: string | Function, factory?: vitest.SuiteFactor
                 scope = createTestScope();
             }
         });
-        vitest.afterEach(async () => await scope?.teardown());
         if (factory && typeof factory === 'function') {
             (<Function>factory)();
         }
@@ -63,8 +48,8 @@ describeWithScope.ignore = vitest.describe.skip;
 
 export const describe  = <typeof vitest.describe><unknown>describeWithScope;
 
-export function beforeEach(op: (scope: Scope) => Operation<void>): void {
-    vitest.beforeEach(() => scope!.runSetup(op));
+export function beforeEach(op: () => Operation<void>): void {
+    vitest.beforeEach(() => scope!.addSetup(op));
 }
 
 export function it(desc: string, op?: () => Operation<void>): void {
