@@ -10,6 +10,8 @@ vi.mock('pg', () => {
     const Pool = vi.fn();
     // @ts-ignore
     Pool.end = vi.fn();
+    // @ts-ignore
+    Pool.on = vi.fn();
     return {Pool};
 });
 
@@ -183,8 +185,14 @@ export function setupPoolMock (queryResults: Record<string, {rows: Record<string
             }
         }
 
-        end() {
+        async end() {
             this.stopped = true;
+        }
+
+        on(event: 'error', listener: (err: Error) => void) {
+            if (event === 'error') {
+                listener(new Error('pool error'));
+            }
         }
 
     }
@@ -214,14 +222,16 @@ describe('createPool', () => {
 
     // example with mocked Pool
     it('Should keep pool open with operation', async function () {
-        const {Pool} = await import('pg');
-        Pool.prototype.end = vi.fn().mockReturnValue(() => undefined);
+        // const {Pool} = await import('pg');
+        // Pool.prototype.end = vi.fn().mockReturnValue(async () => undefined);
+        // Pool.prototype.on = vi.fn().mockReturnValue(() => undefined);
+        const PoolMock = setupPoolMock({});
         await run(function* () {
             function* getPool(config: PoolConfig, logger: FastifyBaseLogger) {
-                return yield* createPool(Pool, config, logger);
+                return yield* createPool(<typeof Pool><unknown>PoolMock, config, logger);
             }
-            yield* getPool({}, <FastifyBaseLogger><unknown>logger);
-            expect(Pool).toBeCalledTimes(1);
+            const pool =  <PoolMock><unknown>yield* getPool({}, <FastifyBaseLogger><unknown>logger);
+            expect(pool.called).toBe(1);
             expect(logger.logs.info).toEqual([]);
         });
     });

@@ -58,7 +58,6 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
 
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-
     fastify.log.info('Server set up.');
 
     return {fastify, port};
@@ -67,11 +66,14 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
 export function createPool(poolClass: typeof Pool, config: PoolConfig, logger: FastifyBaseLogger): Operation<PoolService> {
     return resource(function* (provide) {
         let pool = new poolClass(config);
+        pool.on('error', (err) => {
+            logger.error(`Pool client encountered an error: ${err.message}`);
+        });
         try {
             yield* provide(pool);
         } finally {
             logger.info('Closing database pool...');
-            yield* call(pool.end());
+            yield* call(pool.end().catch((err) => logger.error(`An error occurred when trying to close the database pool: ${err}`)));
             logger.info('Database pool closed.');
         }
     });

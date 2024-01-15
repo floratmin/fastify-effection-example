@@ -7,13 +7,17 @@ export default defineConfig({
         outDir: 'dist',
         target: 'esnext',
         // for minifying the build uncomment the following line
-        // minify: 'esbuild',
+        minify: 'esbuild',
         lib: {
             entry: 'src/main.ts',
             name: 'main',
             fileName: 'main',
             formats: ['es'],
         },
+        ssr: 'src/main.ts'
+    },
+    ssr: {
+        noExternal: ['effection'],
     },
     plugins: [
         VitePluginNode({
