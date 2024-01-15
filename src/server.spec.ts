@@ -6,14 +6,14 @@ import {buildFastify, compiledQueryFactory, createPool, decorateFastifyDatabaseF
 import {PoolService} from './interfaces.ts';
 import {CompiledQuery, Kysely, PostgresDialect} from 'kysely';
 
-vi.mock('pg', () => {
-    const Pool = vi.fn();
-    // @ts-ignore
-    Pool.end = vi.fn();
-    // @ts-ignore
-    Pool.on = vi.fn();
-    return {Pool};
-});
+// vi.mock('pg', () => {
+//     const Pool = vi.fn();
+//     // @ts-ignore
+//     Pool.end = vi.fn();
+//     // @ts-ignore
+//     Pool.on = vi.fn();
+//     return {Pool};
+// });
 
 export function createFastifyMock(logs: Partial<Logs> = {}, devServer = false) {
 
@@ -230,7 +230,7 @@ describe('createPool', () => {
             function* getPool(config: PoolConfig, logger: FastifyBaseLogger) {
                 return yield* createPool(<typeof Pool><unknown>PoolMock, config, logger);
             }
-            const pool =  <PoolMock><unknown>yield* getPool({}, <FastifyBaseLogger><unknown>logger);
+            const pool =  <PoolMock><unknown>(yield* getPool({}, <FastifyBaseLogger><unknown>logger));
             expect(pool.called).toBe(1);
             expect(logger.logs.info).toEqual([]);
         });
