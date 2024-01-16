@@ -74,9 +74,7 @@ export function usePool(poolClass: typeof Pool, config: PoolConfig, logger: Fast
             yield* provide(pool);
         } finally {
             logger.info('Closing database pool...');
-            yield* spawn(() => action(function* (_, reject) {
-                yield* call(pool.end().catch(reject));
-            }));
+            yield* call(() => pool.end());
             logger.info('Database pool closed.');
         }
     });
