@@ -1,6 +1,6 @@
 import Fastify, {FastifyBaseLogger, FastifyInstance} from 'fastify';
 import {Pool, PoolConfig} from 'pg';
-import {action, call, Operation, resource, Scope, useScope} from 'effection';
+import {action, call, Operation, resource, Scope, useScope, spawn} from 'effection';
 import {Compilable, CompiledQuery, InferResult, Kysely, PostgresDialect, PostgresPool} from 'kysely';
 import {DB} from './db.ts';
 import {PoolService} from './interfaces.ts';
@@ -20,6 +20,7 @@ declare module 'fastify' {
         db: Kysely<DB>;
         getQueryResults: QueryDatabase;
         scopes: Scopes;
+        getScoped: (path: string, handler: () => any) => void;
     }
 }
 export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgresDialect: typeof PostgresDialect, logger?: FastifyBaseLogger): Operation<{fastify: FastifyInstance, port: number}> {
@@ -32,7 +33,7 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
     }));
 
     // create pool
-    const pool = yield* createPool(
+    const pool = yield* usePool(
         pgPool,
         {
             host: process.env.DATABASE_HOST,
@@ -63,17 +64,19 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
     return {fastify, port};
 }
 // Create postgres database pool
-export function createPool(poolClass: typeof Pool, config: PoolConfig, logger: FastifyBaseLogger): Operation<PoolService> {
+export function usePool(poolClass: typeof Pool, config: PoolConfig, logger: FastifyBaseLogger): Operation<PoolService> {
     return resource(function* (provide) {
         let pool = new poolClass(config);
-        pool.on('error', (err) => {
-            logger.error(`Pool client encountered an error: ${err.message}`);
-        });
+        yield* spawn((() => action(function* (_, reject) {
+            pool.on('error', reject);
+        })));
         try {
             yield* provide(pool);
         } finally {
             logger.info('Closing database pool...');
-            yield* call(pool.end().catch((err) => logger.error(`An error occurred when trying to close the database pool: ${err}`)));
+            yield* spawn(() => action(function* (_, reject) {
+                yield* call(pool.end().catch(reject));
+            }));
             logger.info('Database pool closed.');
         }
     });

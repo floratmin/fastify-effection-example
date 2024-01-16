@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {Pool, PoolConfig} from 'pg';
 import {createScope, run, Scope} from 'effection';
 import {FastifyBaseLogger, FastifyInstance} from 'fastify';
-import {buildFastify, compiledQueryFactory, createPool, decorateFastifyDatabaseFunctions, fastifyPluginScope, Scopes, startServer} from './server.ts';
+import {buildFastify, compiledQueryFactory, usePool, decorateFastifyDatabaseFunctions, fastifyPluginScope, Scopes, startServer} from './server.ts';
 import {PoolService} from './interfaces.ts';
 import {CompiledQuery, Kysely, PostgresDialect} from 'kysely';
 
@@ -189,9 +189,9 @@ export function setupPoolMock (queryResults: Record<string, {rows: Record<string
             this.stopped = true;
         }
 
-        on(event: 'error', listener: (err: Error) => void) {
+        on(event: 'error', _: (err: Error) => void) {
             if (event === 'error') {
-                listener(new Error('pool error'));
+                return new Error('pool error');
             }
         }
 
@@ -209,7 +209,7 @@ describe('createPool', () => {
         const PoolMock = setupPoolMock({});
 
         const pool = await run(function* () {
-            const pool =  yield* createPool(<typeof Pool><unknown>PoolMock, {}, <FastifyBaseLogger><unknown>logger);
+            const pool =  yield* usePool(<typeof Pool><unknown>PoolMock, {}, <FastifyBaseLogger><unknown>logger);
             expect(logger.logs.info).toEqual([]);
             return <PoolMock><unknown>pool;
         });
@@ -228,7 +228,7 @@ describe('createPool', () => {
         const PoolMock = setupPoolMock({});
         await run(function* () {
             function* getPool(config: PoolConfig, logger: FastifyBaseLogger) {
-                return yield* createPool(<typeof Pool><unknown>PoolMock, config, logger);
+                return yield* usePool(<typeof Pool><unknown>PoolMock, config, logger);
             }
             const pool =  <PoolMock><unknown>(yield* getPool({}, <FastifyBaseLogger><unknown>logger));
             expect(pool.called).toBe(1);

@@ -34,4 +34,13 @@ export async function mainRoutes(fastify: FastifyInstance) {
         },
     });
 
+    function getScoped(path: string, handler: () => any) {
+        fastify.get(path, () => fastify.scopes.getScope('main').run(function* () {
+            return handler();
+        }));
+    }
+    fastify.decorate('getScoped', getScoped);
+
+    fastify.getScoped('/schema/getScoped', () => ({hello: 'world'}));
+
 }
