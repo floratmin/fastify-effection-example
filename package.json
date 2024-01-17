@@ -7,6 +7,8 @@
     "dev": "tsx watch ./src/main.ts",
     "build": "tsc && vite build",
     "run": "NODE_ENV=production node dist/main.js",
+    "dev:boom": "NODE_ENV=production BOOM=server node dist/main.js",
+    "dev:boom:handler": "NODE_ENV=production BOOM=handler node dist/main.js",
     "startdb": "docker-compose up",
     "test": "vitest",
     "bench:server": "LOGGER=false tsx ./src/main.ts",

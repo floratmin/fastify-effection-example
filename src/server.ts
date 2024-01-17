@@ -1,6 +1,6 @@
 import Fastify, {FastifyBaseLogger, FastifyInstance} from 'fastify';
 import {Pool, PoolConfig} from 'pg';
-import {action, call, Operation, resource, Scope, useScope, spawn} from 'effection';
+import {action, call, Operation, resource, Scope, useScope, spawn, sleep} from 'effection';
 import {Compilable, CompiledQuery, InferResult, Kysely, PostgresDialect, PostgresPool} from 'kysely';
 import {DB} from './db.ts';
 import {PoolService} from './interfaces.ts';
@@ -23,7 +23,13 @@ declare module 'fastify' {
         getScoped: (path: string, handler: () => any) => void;
     }
 }
+
+export function* boom(duration: number) {
+    yield* sleep(duration);
+    throw new Error('Boom');
+}
 export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgresDialect: typeof PostgresDialect, logger?: FastifyBaseLogger): Operation<{fastify: FastifyInstance, port: number}> {
+
 
     const scope = yield* useScope();
 
@@ -60,6 +66,7 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
     fastify.log.info('Server set up.');
+
 
     return {fastify, port};
 }

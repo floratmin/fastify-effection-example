@@ -1,5 +1,6 @@
 import {FastifyInstance, FastifyReply, FastifyRequest} from 'fastify';
 import {Operation, sleep} from 'effection';
+import {boom} from '../server.ts';
 
 // convenience function for running handler in scope
 type ScopedFunction = (request: FastifyRequest, reply: FastifyReply, fastify?: FastifyInstance) => () => Operation<void>;
@@ -19,6 +20,8 @@ export function getRollbackHandler(fastify: FastifyInstance, scopeKey: string) {
         scope.run(function* () {
             try {
                 yield* rollback.try();
+            } catch (e) {
+                fastify.log.error((e as Error).message);
             } finally {
                 if (interrupted.state) {
                     yield* rollback.rollback();
@@ -42,13 +45,17 @@ export async function handledScope(fastify: FastifyInstance) {
     fastify.get('/rollback', rollbackHandler((_, reply , rollback) => (
         {
             try: function*(): Operation<void> {
-                yield* sleep(5000);
+                if (process.env.BOOM === 'handler') {
+                    yield* boom(1000);
+                } else {
+                    yield* sleep(5000);
+                }
                 rollback.state = false;
                 reply.send({hello: 'scope with rollback'});
             },
             rollback: function*(): Operation<void> {
                 fastify.log.info('Handler was interrupted. Cleaning up...');
-                reply.send(new Error('Server Error'));
+                reply.status(500).send({ok: false});
             },
         })
     ));
