@@ -34,7 +34,7 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
     const scope = yield* useScope();
 
     // instantiate server
-    const fastify= yield* call(() => Fastify({
+    const fastify = yield* call(() => Fastify({
         logger: logger ?? (process.env.LOGGER ? process.env.LOGGER === 'true' : true),
     }));
 
@@ -42,8 +42,8 @@ export function* buildFastify(pgPool: typeof Pool, kysely: typeof Kysely, postgr
     const pool = yield* usePool(
         pgPool,
         {
-            host: process.env.DATABASE_HOST,
-            port: parseInt(process.env.DATABASE_PORT ?? '5432'),
+            host: import.meta.env?.VITE_DATABASE_HOST ?? process.env.VITE_DATABASE_HOST,
+            port: parseInt(import.meta.env?.VITE_DATABASE_PORT ?? process.env.VITE_DATABASE_PORT ?? '5432'),
             database: process.env.DATABASE_NAME,
             user: process.env.DATABASE_USER,
             password: process.env.DATABASE_PASSWORD,

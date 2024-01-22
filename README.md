@@ -28,8 +28,3 @@ database query (like `GET /benchmark/no/db`) before.
 1. Start database: `pnpm run startdb`
 2. Start server: `pnpm run bench:server`
 3. Run benchmark: `pnpm run bench:start`
-
-### Current problem with vitest
-
-When using node version 20 or 21 running `pnpm run test` vitest watch mode hangs after some changes to tests or files.
-Node versions 16 or 18 do not have the same issues.
