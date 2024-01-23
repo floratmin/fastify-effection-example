@@ -31,6 +31,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
             if (!log) {
                 log = console;
             }
+            console.time('server shutdown');
             log.info('Started to close all processes.');
         }
     });

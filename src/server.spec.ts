@@ -6,6 +6,9 @@ import {buildFastify, compiledQueryFactory, usePool, decorateFastifyDatabaseFunc
 import {PoolService} from './interfaces.ts';
 import {CompiledQuery, Kysely, PostgresDialect} from 'kysely';
 
+import fetch from "node-fetch"
+// @ts-ignore
+globalThis.fetch = fetch
 // vi.mock('pg', () => {
 //     const Pool = vi.fn();
 //     // @ts-ignore
@@ -254,7 +257,8 @@ describe('startServer', () => {
         });
         expect(logger.info).toEqual([
             'Listening on port 3000',
-            'Shutting down server...'
+            'Shutting down server...',
+            'onCloseHook',
         ]);
     });
     it('Should start a dev server, which does not wait for closeListener', async() => {
@@ -416,6 +420,7 @@ describe('startServer', () => {
         expect(logs.info).toEqual([
             'Listening on port 3000',
             'Shutting down server...',
+            'onCloseHook'
         ]);
     });
     it('starts the devServer', async () => {

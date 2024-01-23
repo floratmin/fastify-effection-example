@@ -11,6 +11,7 @@
     "dev:boom:handler": "NODE_ENV=production BOOM=handler node dist/main.js",
     "startdb": "docker-compose up",
     "test": "vitest --pool=forks",
+    "testd": "vitest",
     "bench:server": "LOGGER=false tsx ./src/main.ts",
     "bench:start": "ab -r -n 100000 -c 500 http://127.0.0.1:3000/benchmark/no/no;sleep 1;ab -r -n 100000 -c 500 http://127.0.0.1:3000/benchmark/sc/no;sleep 1;ab -r -n 100000 -c 500 http://127.0.0.1:3000/benchmark/sc/no/rollback;sleep 1;ab -r -n 100000 -c 500 http://127.0.0.1:3000/benchmark/no/db;sleep 1;ab -r -n 100000 -c 500 http://127.0.0.1:3000/benchmark/sc/db;"
   },
@@ -30,6 +31,7 @@
     "fastify": "^4.25.2",
     "fastify-plugin": "^4.5.1",
     "kysely": "^0.27.2",
+    "node-fetch": "^3.3.2",
     "pg": "^8.11.3"
   }
 }

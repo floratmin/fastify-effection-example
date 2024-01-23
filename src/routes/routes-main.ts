@@ -8,30 +8,30 @@ export async function mainRoutes(fastify: FastifyInstance) {
         handler: ()  => {
             return {hello: 'world'};
         },
-        schema: {
-            tags: ['Hello'],
-            description: 'Get Greeting',
-            response: {
-                '2xx': {
-                    $ref: 'http://hello-schema.com#',
-                }
-            },
-        },
+        // schema: {
+        //     tags: ['Hello'],
+        //     description: 'Get Greeting',
+        //     response: {
+        //         '2xx': {
+        //             $ref: 'http://hello-schema.com#',
+        //         }
+        //     },
+        // },
     });
 
     fastify.get('/schema/scope', {
         handler: () => fastify.scopes.getScope('main').run(function* () {
             return {hello: 'world'};
         }),
-        schema: {
-            tags: ['Hello'],
-            description: 'Get Greeting',
-            response: {
-                '2xx': {
-                    $ref: 'http://hello-schema.com#',
-                }
-            },
-        },
+        // schema: {
+        //     tags: ['Hello'],
+        //     description: 'Get Greeting',
+        //     response: {
+        //         '2xx': {
+        //             $ref: 'http://hello-schema.com#',
+        //         }
+        //     },
+        // },
     });
 
     function getScoped(path: string, handler: () => any) {

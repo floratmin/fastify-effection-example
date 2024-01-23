@@ -6,6 +6,9 @@ import {setupPoolMock, createLoggerMock, Logs, PoolMock} from '../server.spec.ts
 import {FastifyBaseLogger, FastifyInstance} from 'fastify';
 import {call, run, sleep} from 'effection';
 
+import fetch from "node-fetch"
+// @ts-ignore
+globalThis.fetch = fetch
 const PostgresDialectMock = <typeof PostgresDialect><unknown>class {
     // @ts-ignore
     constructor(private config: {pool: PoolMock}) {

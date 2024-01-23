@@ -35,6 +35,13 @@ export async function handledScope(fastify: FastifyInstance) {
 
     const scopedHandler = getScopedHandler(fastify, 'main');
 
+    fastify.get('/unscoped', async() => {
+        fastify.log.info('start unscoped');
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        fastify.log.info('end unscoped');
+        return {hello: 'user'};
+    });
+
     fastify.get('/scoped', scopedHandler((_, reply) => function* (){
         reply.send({hello: 'user'});
     }));
